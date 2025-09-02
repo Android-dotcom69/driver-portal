@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FleetTrack - Driver Dashboard</title>
+    <link rel="stylesheet" href="styles/dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+    <!-- Speed Warning Modal -->
+    <div class="speed-warning-modal" id="speedWarningModal">
+        <div class="modal-content">
+            <div class="warning-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3>Speed Warning</h3>
+            <p id="speedWarningMessage">You are exceeding the speed limit!</p>
+            <button class="acknowledge-btn" onclick="acknowledgeSpeedWarning()">Acknowledge</button>
+        </div>
+    </div>
+
+    <!-- Emergency Modal -->
+    <div class="emergency-modal" id="emergencyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Emergency Report</h3>
+                <button class="close-btn" onclick="closeEmergencyModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="emergency-options">
+                <button class="emergency-option accident" onclick="reportEmergency('accident')">
+                    <i class="fas fa-car-crash"></i>
+                    <span>Accident</span>
+                </button>
+                <button class="emergency-option breakdown" onclick="reportEmergency('breakdown')">
+                    <i class="fas fa-wrench"></i>
+                    <span>Vehicle Breakdown</span>
+                </button>
+                <button class="emergency-option medical" onclick="reportEmergency('medical')">
+                    <i class="fas fa-heartbeat"></i>
+                    <span>Medical Emergency</span>
+                </button>
+                <button class="emergency-option security" onclick="reportEmergency('security')">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Security Issue</span>
+                </button>
+                <button class="emergency-option other" onclick="reportEmergency('other')">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Other Emergency</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-truck"></i>
+                    <span>FleetTrack</span>
+                </div>
+            </div>
+
+            <!-- Driver Profile Section -->
+            <div class="profile-section">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="profile-info">
+                        <h3 id="driverName">Rajesh Yadav</h3>
+                        <span id="driverStatus" class="status-active">On Duty</span>
+                    </div>
+                </div>
+                
+                <div class="profile-details">
+                    <div class="detail-item">
+                        <span class="label">Driver ID:</span>
+                        <span class="value" id="driverIdDisplay">MH12AB1234</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">License:</span>
+                        <span class="value" id="licenseNumber">MH14201900123</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Phone:</span>
+                        <span class="value" id="phoneNumber">+91-9876543210</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Experience:</span>
+                        <span class="value" id="experience">5 years</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vehicle Information -->
+            <div class="vehicle-section">
+                <h4><i class="fas fa-car"></i> Vehicle Details</h4>
+                <div class="vehicle-details">
+                    <div class="detail-item">
+                        <span class="label">License Plate:</span>
+                        <span class="value" id="licensePlate">MH12AB1234</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Model:</span>
+                        <span class="value" id="vehicleModel">Tata 407 2021</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Mileage:</span>
+                        <span class="value" id="vehicleMileage">45,230 km</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Fuel Type:</span>
+                        <span class="value" id="fuelType">Diesel</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Fuel Level:</span>
+                        <span class="value" id="fuelLevel">75%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leave Information -->
+            <div class="leave-section">
+                <h4><i class="fas fa-calendar-alt"></i> Leave Status</h4>
+                <div class="leave-details">
+                    <div class="detail-item">
+                        <span class="label">Available:</span>
+                        <span class="value" id="leaveAvailable">12 days</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Used:</span>
+                        <span class="value" id="leaveUsed">8 days</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">This Month:</span>
+                        <span class="value" id="leaveThisMonth">2 days</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Section -->
+            <div class="orders-section">
+                <h4><i class="fas fa-clipboard-list"></i> Work Metrics</h4>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="metric-info">
+                            <span class="metric-value" id="todayDeliveries">12</span>
+                            <span class="metric-label">Today's Deliveries</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="metric-info">
+                            <span class="metric-value" id="hoursWorked">6.5h</span>
+                            <span class="metric-label">Hours Worked</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-route"></i>
+                        </div>
+                        <div class="metric-info">
+                            <span class="metric-value" id="distanceCovered">245km</span>
+                            <span class="metric-label">Distance Today</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="metric-info">
+                            <span class="metric-value" id="rating">4.8</span>
+                            <span class="metric-label">Rating</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <h2>Driver Dashboard</h2>
+                    <span class="last-updated">Last updated: <span id="lastUpdated">10:33 PM</span></span>
+                </div>
+                <div class="header-right">
+                    <div class="driver-info">
+                        <span class="driver-name" id="headerDriverName">Rajesh Yadav</span>
+                        <span class="vehicle-plate" id="headerVehiclePlate">MH12AB1234</span>
+                    </div>
+                    <div class="emergency-button">
+                        <button class="emergency-btn" onclick="openEmergencyModal()">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Emergency
+                        </button>
+                    </div>
+                    <div class="user-menu">
+                        <button class="user-btn" onclick="toggleUserMenu()">
+                            <i class="fas fa-user-circle"></i>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <a href="#" onclick="logout()">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Status Cards -->
+                <div class="status-cards">
+                    <div class="status-card current-speed">
+                        <div class="card-icon">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                        <div class="card-content">
+                            <h4>Current Speed</h4>
+                            <span class="speed-value" id="currentSpeed">45</span>
+                            <span class="speed-unit">km/h</span>
+                        </div>
+                        <div class="speed-status" id="speedStatus">Normal</div>
+                    </div>
+                    
+                    <div class="status-card next-delivery">
+                        <div class="card-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="card-content">
+                            <h4>Next Delivery</h4>
+                            <span class="delivery-address" id="nextDeliveryAddress">Pune Railway Station</span>
+                            <span class="delivery-eta" id="deliveryETA">ETA: 15 min</span>
+                        </div>
+                    </div>
+                    
+                    <div class="status-card zone-alert">
+                        <div class="card-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="card-content">
+                            <h4>Zone Alert</h4>
+                            <span class="zone-type" id="zoneType">School Zone</span>
+                            <span class="zone-limit" id="zoneLimit">Speed Limit: 25 km/h</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Map Container -->
+                <div class="map-container">
+                    <div class="map-header">
+                        <h3>Route Tracking</h3>
+                        <div class="map-controls">
+                            <button class="map-btn" onclick="centerMap()">
+                                <i class="fas fa-crosshairs"></i> Center
+                            </button>
+                            <button class="map-btn" onclick="toggleTraffic()">
+                                <i class="fas fa-traffic-light"></i> Traffic
+                            </button>
+                            <button class="map-btn" onclick="toggleSatellite()">
+                                <i class="fas fa-satellite"></i> Satellite
+                            </button>
+                        </div>
+                    </div>
+                    <div id="map" class="map"></div>
+                </div>
+
+                <!-- Recent Activities -->
+                <div class="activities-section">
+                    <h3>Recent Activities</h3>
+                    <div class="activities-list" id="activitiesList">
+                        <div class="activity-item">
+                            <div class="activity-icon delivered">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="activity-content">
+                                <span class="activity-title">Delivery Completed</span>
+                                <span class="activity-details">Package delivered to 456 Oak Ave</span>
+                                <span class="activity-time">2:30 PM</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon pickup">
+                                <i class="fas fa-box-open"></i>
+                            </div>
+                            <div class="activity-content">
+                                <span class="activity-title">Package Picked Up</span>
+                                <span class="activity-details">Collected from Warehouse B</span>
+                                <span class="activity-time">1:45 PM</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon started">
+                                <i class="fas fa-play-circle"></i>
+                            </div>
+                            <div class="activity-content">
+                                <span class="activity-title">Shift Started</span>
+                                <span class="activity-details">Logged in and vehicle checked</span>
+                                <span class="activity-time">9:00 AM</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notifications Container -->
+    <div class="notifications-container" id="notificationsContainer"></div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
